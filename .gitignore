@@ -5,3 +5,6 @@
 *.avi
 *.exe
 yalibiao-For tracking vision-based OLT/
+*.png
+*.jpg
+.ipynb_checkpoints/
