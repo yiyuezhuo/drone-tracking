@@ -1,0 +1,1 @@
+call %comspec% /k "D:\VisualStudio\VC\Auxiliary\Build\vcvars64.bat

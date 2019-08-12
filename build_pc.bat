@@ -1,1 +1,1 @@
-cl old.cpp opencv_world342.lib -IE:\agent2\opencv-release-342\opencv\build\include /link /OUT:"test.exe" /SUBSYSTEM:CONSOLE /MACHINE:X64 /LIBPATH:E:\agent2\opencv-release-342\opencv\build\x64\vc14\lib
+cl new.cpp opencv_world342.lib -IE:\agent2\opencv-release-342\opencv\build\include /link /OUT:"test.exe" /SUBSYSTEM:CONSOLE /MACHINE:X64 /LIBPATH:E:\agent2\opencv-release-342\opencv\build\x64\vc14\lib
