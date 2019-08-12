@@ -17,6 +17,9 @@ class SubtractorYYZ():
         difff = diff.ravel()
         mask = (diff - difff.mean())/difff.std() > self.threshold
         self.prev_frame = frame
+
+        
+
         return (mask * 255).astype(np.uint8)
 
 def createBackgroundSubtractorYYZ(threshold = 3):

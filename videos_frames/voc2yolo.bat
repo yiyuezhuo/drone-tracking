@@ -1,0 +1,1 @@
+python convert2Yolo\example.py --datasets VOC --img_path train_img --label labels_voc --convert_output_path labels_yolo --img_type ".png" --manipast_path ./ --cls_list_file drone.names
