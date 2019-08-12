@@ -11,7 +11,7 @@ with open('train.txt', 'w') as f:
 
 print("Write", len(path_list), "terms into train.txt", )
 
-with open('text.txt', 'w') as f:
+with open('test.txt', 'w') as f:
     f.write('\n'.join(path_list))
 
-print("Create dummy text.txt")
+print("Create dummy test.txt")

@@ -11,3 +11,6 @@ yalibiao-For tracking vision-based OLT/
 *.xml
 *.txt
 yolo-weights/
+*.weights
+*.list
+bad.list
