@@ -63,11 +63,14 @@ cv::KalmanFilter createKalmanFilter(){
 
 int main(int argc, char **argv)
 {
-	auto anomaly_detector = RectSizeDetector();
+	//auto anomaly_detector = RectSizeDetector();
 
 	//auto object_detector = ObsessionHumandDector();
 	//auto object_detector = HumanDetector();
-	auto object_detector = YOLODetector();
+	//auto object_detector = YOLODetector();
+
+	auto anomaly_detector = ANOMALY_DETECTOR();
+	auto object_detector = OBJECT_DETECTOR();
 
 	/*
 	#ifdef OBSESSION
@@ -113,6 +116,7 @@ int main(int argc, char **argv)
 	cv::Mat state(stateSize, 1, type);  // [x,y,v_x,v_y,w,h]
 	cv::Mat meas(measSize, 1, type);    // [z_x,z_y,z_w,z_h]
 	
+	bool redo = false;
 	long int i = 0;	
 	while (video.read(src))
 	{
@@ -123,6 +127,14 @@ int main(int argc, char **argv)
 			imshow("Tracking", src);
 			found = object_detector.detect(src, InitBB);
 			if(found){
+				// reset anomaly detector
+				anomaly_detector = ANOMALY_DETECTOR();
+				object_detector.quota = object_detector.max_quota;
+				//cout << "quota1:" << object_detector.quota << endl;
+				//anomaly_detector.step(InitBB.width, InitBB.height); // skip start
+				anomaly_detector.step(InitBB.x+InitBB.width/2, InitBB.y+InitBB.height/2, InitBB.width, InitBB.height); // skip start
+				//cout << "quota1:" << object_detector.quota << endl;
+
 				// if detector found, reset kf state using detected InitBB, 
 				meas.at<float>(0) = InitBB.x + InitBB.width / 2;
 				meas.at<float>(1) = InitBB.y + InitBB.height / 2;
@@ -160,17 +172,22 @@ int main(int argc, char **argv)
 				maxD2 = max(w2, h2);
 				ImageScale = maxD2 / MAX_IMG_DIM;
 
+				// force img cache setup
+				redo = true;
+
 			}
 		}
 
 		// if detector found in this frame before, run following tracking logic
 		if(found){
-			if (i % FRAME_TO_GLOBAL == 0) // update the complete saliency map every ten frames
+			if (redo || (i % FRAME_TO_GLOBAL == 0)) // update the complete saliency map every ten frames
 			{
 				use_MBSPlus = false;
 				img_dst = doWork(src, use_Gray, remove_border, use_MBSPlus);
 				img = img_dst.clone();
 				use_MBSPlus = true;
+
+				redo = false;
 			}
 
 			//cout << "it doWork" << endl; 
@@ -194,6 +211,7 @@ int main(int argc, char **argv)
 			img_dst = doWork(src, use_Gray, remove_border, use_MBSPlus);
 			use_MBSPlus = true;
 			#else
+			//inspect(img, "img");
 			img_dst = doWorkPlus(src, img, state, use_Gray, remove_border, use_MBSPlus);
 			#endif
 			// uncomment to write the saliency map to TrackingResPath:
@@ -297,16 +315,27 @@ int main(int argc, char **argv)
 			InitBB = boundingRect(Mat(points));
 
 			// tracking is faster but unsteady, a detector is required to test if it failed
-			bool anomaly_detected = anomaly_detector.step(InitBB.width, InitBB.height);
+			//bool anomaly_detected = anomaly_detector.step(InitBB.width, InitBB.height);
+			bool anomaly_detected = anomaly_detector.step(InitBB.x+InitBB.width/2, InitBB.y+InitBB.height/2, InitBB.width, InitBB.height);
 			//bool anomaly_detected = false;
+			
+			if(anomaly_detected && object_detector.quota >0){
+				anomaly_detected = false;
+				object_detector.quota--;
+				anomaly_detector.stoped = false;
+			}
 
 			if (anomaly_detected){
-				cout << "anomaly occur" << endl;
-				//found = false;  // trigger kf reset, is it useful?
-				//found = true;
+				cout << "anomaly occur" <<  endl;
 				found = object_detector.detect(src, InitBB);
-				anomaly_detector = RectSizeDetector();
-				//waitKey();
+				if(found){
+					anomaly_detector = ANOMALY_DETECTOR();
+					object_detector.quota = object_detector.max_quota;
+					//cout << "quota2:" << object_detector.quota << endl;
+					//anomaly_detector.step(InitBB.width, InitBB.height);
+					anomaly_detector.step(InitBB.x+InitBB.width/2, InitBB.y+InitBB.height/2, InitBB.width, InitBB.height); // skip start
+					//cout << "quota2:" << object_detector.quota << endl;
+				}
 			}
 		}
 		
@@ -354,6 +383,7 @@ int main(int argc, char **argv)
 		// resize(img_dst,img_dst,Size((int)(w0*854/MAX_IMG_DIM),(int)(h0*854/MAX_IMG_DIM)),0.0,0.0,INTER_AREA);
 		// imwrite(imgOutPath, src);
 
+		cout << "Frame above:" << i-1 << endl << endl;
 		#ifdef PAUSE_PER_FRAME
 		waitKey();
 		#endif

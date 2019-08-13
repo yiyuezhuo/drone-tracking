@@ -7,19 +7,40 @@ using namespace std;
 
 class ObjectDetector{
     public:
+        ObjectDetector();
         Rect detect(Mat mat);
+        int quota=0;
+        int max_quota=1;
 };
 
 class HumanDetector{
     public:
+        HumanDetector();
         bool detect(Mat input, Rect& output);
+        int quota=1; // enable tracking fail once
+        int max_quota=1;
 };
 
 class ObsessionHumandDector{
     // force select a ROI, disable fail returned, debug purpose. Assume a object is present.
     public:
+        ObsessionHumandDector();
         bool detect(Mat input, Rect& output);
+        int quota=1;
+        int max_quota=1;
 };
+
+class YOLODetector{
+    public:
+        YOLODetector();
+        bool YOLODetector::detect(Mat input, Rect& output);
+        int quota=0;
+        int max_quota=0;
+    private:
+        Net net;
+};
+
+HumanDetector::HumanDetector():quota(1){};
 
 bool HumanDetector::detect(Mat input, Rect& output){
     output = selectROI(input, false);
@@ -30,6 +51,8 @@ bool HumanDetector::detect(Mat input, Rect& output){
     }
     return true;
 }
+
+ObsessionHumandDector::ObsessionHumandDector():quota(1){};
 
 bool ObsessionHumandDector::detect(Mat input, Rect& output){
     bool ok = false;
@@ -45,17 +68,12 @@ bool ObsessionHumandDector::detect(Mat input, Rect& output){
     return true;
 }
 
-class YOLODetector{
-    public:
-        YOLODetector();
-        bool YOLODetector::detect(Mat input, Rect& output);
-    private:
-        Net net;
-};
+//YOLODetector::YOLODetector():quota(1){};
 
-YOLODetector::YOLODetector(){
+YOLODetector::YOLODetector():quota(1){
     String modelConfiguration = "yolo-cfg/yolov3-tiny-bin.cfg";
-    String modelWeights = "videos_frames/backup/yolov3-tiny-bin_obj_final.weights";
+    String modelWeights = "videos_frames/backup/model2.weights";
+    //String modelWeights = "videos_frames/backup/model1.weights";
 
     net = readNetFromDarknet(modelConfiguration, modelWeights);
     net.setPreferableBackend(DNN_BACKEND_OPENCV);
@@ -69,9 +87,16 @@ bool YOLODetector::detect(Mat input, Rect& output){
     bool ok = detect_drone(net, input, output);
 
     Mat yolo_tracking_backup = input.clone();
-    rectangle(yolo_tracking_backup, output, Scalar(255, 0, 0), 2);
-    imshow("YOLO tracking", yolo_tracking_backup);
-    cout << "YOLO tracking:" << output << endl;
+    if(ok){
+        
+        rectangle(yolo_tracking_backup, output, Scalar(255, 0, 0), 2);
+        imshow("YOLO tracking", yolo_tracking_backup);
+        cout << "YOLO is tracking:" << output << endl;
+    }
+    else{
+        imshow("YOLO tracking", yolo_tracking_backup);
+        cout << "YOLO failed to track" << endl;
+    }
 
     return ok;
 }

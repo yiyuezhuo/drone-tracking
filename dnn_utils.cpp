@@ -121,7 +121,7 @@ bool detect_drone(Net net, Mat frame, Rect& rect_drone){
     #endif
 
     if(max_drone_idx == -1){
-        cout << "fail to detect drone" << endl;
+        //cout << "fail to detect drone" << endl;
         return false; 
     }
 

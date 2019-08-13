@@ -1,11 +1,11 @@
 
 //#define BACKGROUND_MODELLING
 
-#define VIDEO_PATH "videos/6.avi"
+#define VIDEO_PATH "videos/5.avi"
 
 //#define DISABLE_LOCAL_SCAN
 
-#define PAUSE_PER_FRAME
+//#define PAUSE_PER_FRAME
 
 //#define USE_RGB
 
@@ -16,4 +16,6 @@
 
 //#define TRACK_VARIANCE
 
-//#define OBSESSION
+#define ANOMALY_DETECTOR RectSizeAndJumpDetector
+#define OBJECT_DETECTOR YOLODetector
+//#define OBJECT_DETECTOR HumanDetector

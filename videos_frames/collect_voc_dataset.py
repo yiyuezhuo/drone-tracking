@@ -12,6 +12,23 @@ import os
 root_list = ['4','5','6']
 root_train_list = [root+'_train' for root in root_list]
 
+# verify integrity
+verify = True
+print("Search for missing file...")
+for root_train in root_train_list:
+    pure_set = set([os.path.splitext(name)[0] for name in os.listdir(root_train)])
+    pure_set_anno = set([os.path.splitext(name)[0] for name in os.listdir(root_train+"_anno")])
+    pure_set_sub_pure_set_anno = pure_set - pure_set_anno
+    pure_set_anno_sub_pure_set = pure_set_anno - pure_set
+    for typ, check_set in enumerate([pure_set_sub_pure_set_anno, pure_set_anno_sub_pure_set]):
+        for pure_name in check_set:
+            verify = False
+            print(root_train, pure_name, typ)
+    
+if not verify:
+    raise RuntimeError("There're missing files as listed above")
+else:
+    print("Verified")
 
 os.makedirs('train_img', exist_ok=True)
 os.makedirs('labels_voc', exist_ok=True)
