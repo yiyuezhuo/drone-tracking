@@ -1,9 +1,7 @@
 
-//#define TOO_LARGE_DROP_UPDATE
+//#define BACKGROUND_MODELLING
 
-#define BACKGROUND_MODELLING
-
-#define VIDEO_PATH "videos/5.avi"
+#define VIDEO_PATH "videos/6.avi"
 
 //#define DISABLE_LOCAL_SCAN
 
@@ -17,3 +15,5 @@
 #define MY_DEBUG
 
 //#define TRACK_VARIANCE
+
+//#define OBSESSION

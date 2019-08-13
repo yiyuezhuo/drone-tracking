@@ -49,6 +49,7 @@ bool removeFrame(const cv::Mat& inImg, cv::Mat& outImg, cv::Rect &roi);
 #define FRAME_MAX 20
 #define SOBEL_THRESH 0.4
 #define EXPIXEL 25 // increase the value to get larger search area
+
 MBS::MBS(const Mat& src)
 	:mAttMapCount(0)
 {
