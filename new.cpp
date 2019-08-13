@@ -63,22 +63,16 @@ cv::KalmanFilter createKalmanFilter(){
 
 int main(int argc, char **argv)
 {
-	//auto anomaly_detector = RectSizeDetector();
 
-	//auto object_detector = ObsessionHumandDector();
-	//auto object_detector = HumanDetector();
-	//auto object_detector = YOLODetector();
+	string imgpath = VIDEO_PATH;
+	cout << argc << endl;
+	if(argc>=2){
+		string _imgpath(argv[1]);
+		imgpath = _imgpath;
+	}
 
 	auto anomaly_detector = ANOMALY_DETECTOR();
 	auto object_detector = OBJECT_DETECTOR();
-
-	/*
-	#ifdef OBSESSION
-	auto object_detector = ObsessionHumandDector();
-	#else
-	auto object_detector = HumanDetector();
-	#endif
-	*/
 
 	#ifdef BACKGROUND_MODELLING
 	auto backSub = createBackgroundSubtractorMOG2();
@@ -88,12 +82,9 @@ int main(int argc, char **argv)
 	Mat src, img, img1, image, img_dst;
 	double TotalTime = 0.0, AveTime = 0.0;
 	//char imgInPath[256], imgOutPath[256], imgOutPath1[256], imgOutPath2[256], BboxPath[256];
-	string imgpath, TrackingResPath;
+	string TrackingResPath;
 	//std::vector<cv::String> filenames;
-	//cv::String folder;
-
-	//imgpath = "videos/5.avi";
-	imgpath = VIDEO_PATH;
+	//cv::String folder;	
 
 	VideoCapture video(imgpath);
 	if (!video.isOpened())
@@ -301,7 +292,6 @@ int main(int argc, char **argv)
 				cout << "Empty points detected" << endl;
 			}
 
-			//##############################################//
 			#ifdef TRACK_VARIANCE
 			cout << "errorCovPre:" << endl;
 			show_mat<float>(kf.errorCovPre);
