@@ -668,7 +668,8 @@ int main(int argc, char **argv)
 	//std::vector<cv::String> filenames;
 	//cv::String folder;
 
-	imgpath = "videos/5.avi";
+	//imgpath = "videos/5.avi";
+	imgpath = VIDEO_PATH;
 
 	VideoCapture video(imgpath);
 	if (!video.isOpened())
@@ -816,14 +817,6 @@ int main(int argc, char **argv)
 	{
 		////src = imread(imgInPath, 1);
 
-		#ifdef BackgroundModelling
-		backSub->apply(src, fgMask);
-		imshow("FG Mask", fgMask);
-		double min, max;
-		//minMaxLoc(fgMask, &min, &max); // 0-255
-		//cout << "FG Mask min:" << min <<" max:" << max << endl;
-		#endif
-
 		// Start the clock timing
 		clock_t begin_t = clock();
 		if (i % 20 == 0) // update the complete saliency map every ten frames
@@ -834,10 +827,28 @@ int main(int argc, char **argv)
 			use_MBSPlus = true;
 		}
 
-		// kalman filter 
+		 
 		resize(src, src, Size((int)(MAX_IMG_DIM*w2 / maxD2), (int)(MAX_IMG_DIM*h2 / maxD2)), 0.0, 0.0, INTER_AREA);
+		
+		#ifdef BackgroundModelling
+		backSub->apply(src, fgMask);
+		cout << "src.rows:" << src.rows << " src.cols:" << src.cols << endl;
+		cout << "fgMask.rows:" << fgMask.rows << " fgMask.cols:" << fgMask.cols << endl;
+		imshow("FG Mask", fgMask);
+		/* 
+		double min, max;
+		minMaxLoc(fgMask, &min, &max); // 0-255
+		cout << "FG Mask min:" << min <<" max:" << max << endl;
+		*/
+		#endif
+		
+		// kalman filter
+		#ifdef DISABLE_LOCAL_SCAN
+		//doWork(img1, use_Gray, remove_border, use_MBSPlus);
+		img_dst = doWork(src, use_Gray, remove_border, use_MBSPlus);
+		#else
 		img_dst = doWorkPlus(src, img, state, use_Gray, remove_border, use_MBSPlus);
-
+		#endif
 		// uncomment to write the saliency map to TrackingResPath:
 		// normalize(img_dst, image, 0.0, 255.0, NORM_MINMAX);
 		// image.convertTo(image, CV_8UC1);
@@ -879,13 +890,48 @@ int main(int argc, char **argv)
 		#ifdef BackgroundModelling
 		//Mat cacheFrame = frame.clone();
 		//frame = frame * (fgMask/255);
-		for(int i=0; i<frame.rows; i++){
-			for(int j=0; j<frame.cols; j++){
-				if (fgMask.at<int>(i,j) != 255){
-					frame.at<int>(i,j)= 0;
+		//cout << "frame.rows:" << frame.rows << " frame.cols:" << frame.cols << endl;
+		//cout << "fgMask.rows:" << fgMask.rows << " fgMask.cols:" << fgMask.cols << endl;
+		
+		//double min, max;
+		//minMaxLoc(frame, &min, &max); // 0-255
+		//cout << "frame min:" << min <<" max:" << max << endl;
+
+		double min, max;
+		minMaxLoc(fgMask, &min, &max); // 0-255
+		cout << "FG Mask min:" << min <<" max:" << max << endl;
+
+		//frame.at<uchar>(0,0) = 0;
+		//frame.at<int>(0,0) = 0;
+		//frame.at<uchar>(0,frame.cols) = 0;
+		//frame.at<uchar>(frame.rows,frame.cols) = 0;
+		//frame.at<uchar>(frame.rows*2,frame.cols*2) = 0;
+
+		inspect(frame, "frame");
+		inspect(fgMask, "fgMask");
+		waitKey();
+
+		Mat andFrame = frame.clone();
+		Mat orFrame = frame.clone();
+		if ((max == 255) && (min ==0)){ // skip first frame
+			for(int i=0; i<frame.rows; i++){
+				for(int j=0; j<frame.cols; j++){
+					//cout << "i:" << i << " j:" << j << endl;
+					if (fgMask.at<uchar>(i,j) == 0){
+						andFrame.at<uchar>(i,j) = 0;
+					}
+					if(fgMask.at<uchar>(i,j) == 255){
+						orFrame.at<uchar>(i,j) = 255;
+					}
 				}
 			}
 		}
+		cout << "iter end" << endl;
+		imshow("and frame", andFrame);
+		imshow("or frame", orFrame);
+		inspect(andFrame, "andFrame");
+		inspect(orFrame, "orFrame");
+		waitKey(1);
 		#endif
 
 		std::vector<cv::Point> points;
@@ -898,6 +944,12 @@ int main(int argc, char **argv)
 				points.push_back(it.pos());
 			}
 		}
+
+		cout << "points.size()" << points.size() << endl;
+		if(points.size() == 0){
+			cout << "Empty points detected" << endl;
+		}
+
 		// draw the InitBB
 		Rect InitBB = boundingRect(Mat(points));
 		////outBB << ImageScale*InitBB.x << "," << ImageScale*InitBB.y << "," << ImageScale*InitBB.width << "," << ImageScale*InitBB.height << endl;
@@ -1011,7 +1063,6 @@ int main(int argc, char **argv)
 	cout << "Frame rate for " << imgpath << " is: " << FPS << " fps." << endl;
 	////cout << "It's the " << Img_seq[j] << endl;
 	
-	
-	system("pause");
+	//system("pause");
 	return 0;
 }
