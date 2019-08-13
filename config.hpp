@@ -1,22 +1,19 @@
 
-//#define TooLargeDropUpdate
+//#define TOO_LARGE_DROP_UPDATE
 
-#define BackgroundModelling
+#define BACKGROUND_MODELLING
 
 #define VIDEO_PATH "videos/5.avi"
 
 //#define DISABLE_LOCAL_SCAN
 
-// debug tool 
+#define PAUSE_PER_FRAME
 
-#include <opencv2/opencv.hpp>
-using namespace std;
-using namespace cv;
+//#define USE_RGB
 
-void inspect(Mat mat, string label){
-    double min, max;
-    minMaxLoc(mat, &min, &max);
-    int count = countNonZero(mat);
-    cout << label <<" rows:" << mat.rows << " cols:" << mat.cols << " type:"<< mat.type()
-     << " min:" << min << "max:" << max << " #nonzero:" << count << endl;
-}
+#define FRAME_TO_GLOBAL 20
+//#define FRAME_TO_GLOBAL 3
+
+#define MY_DEBUG
+
+//#define TRACK_VARIANCE
